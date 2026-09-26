@@ -1,24 +1,35 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
-import { Input } from "@shared/ui/Input/Input";
 import { Button } from "@shared/ui/Button/Button";
+import { RegisterInput } from "./RegisterInput";
+import { Feather } from "@expo/vector-icons";
 
 export const EmployeeRegister = ({ onBack }) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async () => {
+    // mock register
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      Alert.alert("Sucesso", "Cadastro realizado com sucesso.");
+    }, 1000);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Cadastro de Funcionário</Text>
-        <TouchableOpacity style={styles.headerButton} onPress={onBack}>
-          <Text style={styles.headerButtonText}>botão</Text>
-          <Feather name="chevron-right" size={20} color="#D92D20" />
-        </TouchableOpacity>
+        <Text style={styles.headerSubtitle}>
+          Adicione as informações pessoais para concluir{"\n"}o cadastro
+        </Text>
       </View>
 
       <ScrollView
@@ -26,77 +37,49 @@ export const EmployeeRegister = ({ onBack }) => {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.sectionTitle}>Informações Pessoais</Text>
-        <Text style={styles.sectionSubtitle}>
-          Adicione as informações pessoais para concluir o cadastro
-        </Text>
 
         <View style={styles.form}>
-          <Input
-            label="nome"
-            placeholder="Rita Lee"
-            backgroundColor="#C1B4D8"
-            borderColor="#68519d"
-            labelColor="#68519d"
-          />
-          <Input
+          <RegisterInput label="Nome" placeholder="" />
+          <RegisterInput
             label="Telefone"
-            placeholder="(79)91234-5678"
-            backgroundColor="#C1B4D8"
-            borderColor="#68519d"
-            labelColor="#68519d"
+            placeholder="Ex: (79) 91234-5678"
             keyboardType="phone-pad"
           />
-          <Input
+          <RegisterInput
             label="Email"
-            placeholder="exemplo@dominio.com"
-            backgroundColor="#C1B4D8"
-            borderColor="#68519d"
-            labelColor="#68519d"
+            placeholder="Ex: example@gmail.com"
             keyboardType="email-address"
           />
-          <Input
-            label="CPF"
-            placeholder="123.456.789.00"
-            backgroundColor="#C1B4D8"
-            borderColor="#68519d"
-            labelColor="#68519d"
+          <RegisterInput
+            label="Cpf"
+            placeholder="Ex: 123.456.789-00"
             keyboardType="numeric"
           />
-          <Input
-            label="Senha"
-            placeholder="Senha"
-            backgroundColor="#C1B4D8"
-            borderColor="#68519d"
-            labelColor="#68519d"
-            isPassword
-          />
-          <Input
-            label="Repetir Senha"
-            placeholder="Repetir Senha"
-            backgroundColor="#C1B4D8"
-            borderColor="#68519d"
-            labelColor="#68519d"
-            isPassword
-          />
+          <RegisterInput label="Senha" placeholder="" isPassword />
         </View>
 
-        <View style={styles.roleSectionHeader}>
-          <Text style={styles.sectionTitle}>Cargo</Text>
-        </View>
+        <Text style={styles.sectionTitle}>Cargo</Text>
 
-        <TouchableOpacity style={styles.roleDropdown}>
+        <View style={styles.roleDropdown}>
           <Text style={styles.roleDropdownText}>Professor</Text>
-          <Feather name="chevron-down" size={20} color="#2C1E5C" />
-        </TouchableOpacity>
+          <View style={styles.roleDropdownIconGroup}>
+            <Feather name="chevron-down" size={16} color="#000" />
+            <View style={styles.redDot} />
+          </View>
+        </View>
 
         <View style={styles.buttonContainer}>
-          <Button
-            title="Confirmar"
-            style={styles.confirmButton}
-            backgroundColor="#7E60BF"
-            textColor="#fff"
-            onPress={() => console.log("Confirm Employee Registration")}
-          />
+          {loading ? (
+            <ActivityIndicator size="large" color="#666666" />
+          ) : (
+            <Button
+              title="Cadastrar"
+              style={styles.confirmButton}
+              backgroundColor="#666666"
+              textColor="#fff"
+              onPress={handleRegister}
+            />
+          )}
         </View>
       </ScrollView>
     </View>
@@ -109,70 +92,64 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     paddingHorizontal: 24,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    paddingTop: 32,
+    paddingBottom: 16,
   },
   headerTitle: {
     fontSize: 20,
     fontFamily: "Roboto_700Bold",
-    color: "#2C1E5C",
+    color: "#000",
+    marginBottom: 8,
   },
-  headerButton: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  headerButtonText: {
-    color: "#D92D20",
-    fontSize: 12,
-    marginRight: 4,
-    fontFamily: "Roboto_500Medium",
-  },
-  scrollContent: {
-    padding: 24,
-    paddingBottom: 100, // padding for bottom bar
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontFamily: "Roboto_700Bold",
-    color: "#02386A",
-    marginBottom: 4,
-  },
-  sectionSubtitle: {
+  headerSubtitle: {
     fontSize: 12,
     fontFamily: "Roboto_300Light",
-    color: "#333",
-    marginBottom: 24,
+    color: "#555",
+  },
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingBottom: 100,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontFamily: "Roboto_700Bold",
+    color: "#000",
+    marginBottom: 16,
+    marginTop: 8,
   },
   form: {
-    marginBottom: 24,
-  },
-  roleSectionHeader: {
-    marginBottom: 16,
+    marginBottom: 8,
   },
   roleDropdown: {
-    backgroundColor: "#8b73c2", // A darker purple than inputs
-    borderRadius: 8,
-    paddingHorizontal: 16,
+    backgroundColor: "#9D9D9D",
+    borderRadius: 4,
+    paddingHorizontal: 12,
     paddingVertical: 12,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 32,
-    width: "50%",
   },
   roleDropdownText: {
-    fontSize: 16,
-    fontFamily: "Roboto_500Medium",
-    color: "#2C1E5C",
+    fontSize: 12,
+    fontFamily: "Roboto_300Light",
+    color: "#444",
+  },
+  roleDropdownIconGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  redDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#CC0000",
+    marginLeft: 8,
   },
   buttonContainer: {
     alignItems: "center",
-    marginTop: 16,
+    marginTop: 32,
   },
   confirmButton: {
     width: "100%",

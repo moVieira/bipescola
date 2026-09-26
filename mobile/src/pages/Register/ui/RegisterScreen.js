@@ -7,7 +7,7 @@ import {
   Modal,
   ScrollView,
 } from "react-native";
-import { ResponsiveContainer } from '@shared/ui/ResponsiveContainer/ResponsiveContainer';
+import { ResponsiveContainer } from "@shared/ui/ResponsiveContainer/ResponsiveContainer";
 import { Feather } from "@expo/vector-icons";
 import { ParentRegister } from "./ParentRegister";
 import { EmployeeRegister } from "./EmployeeRegister";
