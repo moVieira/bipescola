@@ -1,13 +1,14 @@
 import { query } from '../database/db.js';
 
-export async function create({ name, email, password, role, firstLogin }) {
+export async function create({ nome, email, senha, role, firstLogin }) {
   const sql = 'INSERT INTO users (nome, email, senha, role, firstLogin, ativo) VALUES (?, ?, ?, ?, ?, ?)';
-  const result = await query(sql, [name, email, password, role, firstLogin ? 1 : 0, 'sim']);
+  const result = await query(sql, [nome, email, senha, role, firstLogin ? 1 : 0, 'sim']);
 
   return {
     id: result.insertId,
-    name,
+    nome,
     email,
+    senha,
     role,
     firstLogin
   };
