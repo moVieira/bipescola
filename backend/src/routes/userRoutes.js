@@ -1,5 +1,5 @@
 import express from 'express';
-import { createParent } from '../controllers/userController.js';
+import { createParent } from '../controllers/parentController.js';
 
 const router = express.Router();
 

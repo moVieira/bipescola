@@ -1,10 +1,10 @@
-import * as UserService from '../services/userService.js';
+import { createUser as createUserService } from '../services/userService.js';
 
-export async function createParent(req, res) {
+export async function createUser(req, res) {
   try {
     const { nome, email } = req.body;
 
-    const result = await UserService.createParent({
+    const result = await createUserService({
       nome,
       email
     });

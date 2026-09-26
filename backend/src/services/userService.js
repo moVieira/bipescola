@@ -5,7 +5,7 @@ function generatePassword() {
   return Math.random().toString(36).slice(-8);
 }
 
-export async function createParent({ nome, email }) {
+export async function createUser({ nome, email }) {
 
   const tempPassword = generatePassword();
 
@@ -15,7 +15,7 @@ export async function createParent({ nome, email }) {
     nome,
     email,
     senha: hash,
-    role: 'PARENT',
+    role,
     firstLogin: true
   });
 
