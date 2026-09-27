@@ -1,11 +1,10 @@
 import express from 'express';
-import { createParent } from '../controllers/parentController.js';
+import { createUser } from '../controllers/userController.js';
 
 const router = express.Router();
 
 /// Criar Parente
-router.post('/parents', createParent);
-
+router.post('/', createUser);
 /**
  * 
  * /// Criar Aluno

@@ -15,14 +15,16 @@ const pool = mysql.createPool({
 });
 
 export async function query(sql, values) {
+  let connection;
   try {
-    const connection = await pool.getConnection();
+    connection = await pool.getConnection();
     const [results] = await connection.execute(sql, values);
-    connection.release();
     return results;
   } catch (error) {
     console.error('Erro na query:', error);
     throw error;
+  } finally {
+    connection?.release();
   }
 }
 

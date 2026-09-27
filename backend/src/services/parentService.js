@@ -1,9 +1,13 @@
-import bcrypt from "bcrypt";
 import * as userModel from "../models/userModel.js";
+import * as userService from "./userService.js";
 
 export async function createParent(data) {
-    return await createUser({
-        nome,
-        email
-    })
+  return await userService.createUser({
+    ...data,
+    role: "PARENT"
+  });
+}
+
+export async function getParents() {
+  return await userModel.findByRole("PARENT");
 }

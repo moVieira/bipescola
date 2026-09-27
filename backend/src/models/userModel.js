@@ -25,3 +25,13 @@ export async function findById(id) {
   const results = await query(sql, [id]);
   return results.length > 0 ? results[0] : null;
 }
+
+export async function findByRole(role) {
+  const sql = `
+    SELECT id, nome, email, role, firstLogin, ativo
+    FROM users
+    WHERE role = ?
+  `;
+
+  return await query(sql, [role]);
+}

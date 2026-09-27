@@ -1,6 +1,8 @@
 import express from 'express';
 
 import userRoutes from './src/routes/userRoutes.js';
+import parentRoutes from './src/routes/parentRoutes.js';
+
 import { getConnection } from './src/database/db.js';
 
 import cors from 'cors';
@@ -12,6 +14,7 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 
 app.use('/api/users', userRoutes);
+app.use('/api/parents', parentRoutes);
 
 app.get('/', (req, res) => {
     res.status(200).json({ msg: "Bem-vindo" });
