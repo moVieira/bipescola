@@ -11,3 +11,11 @@ export async function createParent(data) {
 export async function getParents() {
   return await userModel.findByRole("PARENT");
 }
+
+export async function updateParent(id, data) {
+  return await userModel.updateById(id, data);
+}
+
+export async function deleteParent(id) {
+  return await userModel.deleteById(id);
+}

@@ -44,3 +44,66 @@ export async function listParents(req, res) {
     });
   }
 }
+
+export async function updateParent(req, res) {
+  try {
+    const { id } = req.params;
+    const { nome, email } = req.body ?? {};
+
+    const parentId = Number(id);
+
+    if (!Number.isInteger(parentId)) {
+      return res.status(400).json({
+        error: "ID do Parent inválido"
+      });
+    }
+
+    if (!nome || !email) {
+      return res.status(400).json({
+        error: "nome e email são obrigatórios"
+      });
+    }
+
+    const parent = await parentService.updateParent(parentId, {
+      nome,
+      email
+    });
+
+    return res.status(200).json({
+      message: "Parent atualizado com sucesso",
+      data: parent
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      error: "Não foi possível atualizar o Parent",
+      details: error.message
+    });
+  }
+}
+
+export async function deleteParent(req, res) {
+  try {
+    const { id } = req.params;
+
+    const parentId = Number(id);
+
+    if (!Number.isInteger(parentId)) {
+      return res.status(400).json({
+        error: "ID do Parent inválido"
+      });
+    }
+
+    await parentService.deleteParent(parentId);
+
+    return res.status(200).json({
+      message: "Parent excluído com sucesso"
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      error: "Não foi possível excluir o Parent",
+      details: error.message
+    });
+  }
+}

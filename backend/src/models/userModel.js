@@ -35,3 +35,26 @@ export async function findByRole(role) {
 
   return await query(sql, [role]);
 }
+
+export async function updateById(id, { nome, email }) {
+  const sql = `
+    UPDATE users
+    SET nome = ?, email = ?, data_atualizacao = CURRENT_TIMESTAMP
+    WHERE id = ? AND role = 'PARENT'
+  `;
+
+  await query(sql, [nome, email, id]);
+
+  return await findById(id);
+}
+
+export async function deleteById(id) {
+  const sql = `
+    DELETE FROM users
+    WHERE id = ? AND role = 'PARENT'
+  `;
+
+  const result = await query(sql, [id]);
+
+  return result.affectedRows > 0;
+}
