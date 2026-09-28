@@ -8,3 +8,5 @@ yarn-error.log
 .DS_Store
 mobile/node_modules/
 backend/node_modules/
+
+.vs/
