@@ -10,17 +10,31 @@ import {
 import { Button } from "@shared/ui/Button/Button";
 import { RegisterInput } from "./RegisterInput";
 import { Feather } from "@expo/vector-icons";
+import { createUserAPI } from "@shared/api/userApi";
 
 export const EmployeeRegister = ({ onBack }) => {
   const [loading, setLoading] = useState(false);
+  const [nome, setNome] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [email, setEmail] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [senha, setSenha] = useState("");
+  const [role, setRole] = useState("PROF");
 
   const handleRegister = async () => {
-    // mock register
-    setLoading(true);
-    setTimeout(() => {
+    if (!nome || !email || !role) {
+      Alert.alert("Atenção", "Preencha ao menos Nome e Email.");
+      return;
+    }
+    try {
+      setLoading(true);
+      await createUserAPI({ nome, email, role });
+      Alert.alert("Sucesso", "Cadastro de funcionário realizado com sucesso.");
+    } catch (error) {
+      Alert.alert("Erro", error.message || "Falha ao cadastrar funcionário.");
+    } finally {
       setLoading(false);
-      Alert.alert("Sucesso", "Cadastro realizado com sucesso.");
-    }, 1000);
+    }
   };
 
   return (
@@ -39,23 +53,41 @@ export const EmployeeRegister = ({ onBack }) => {
         <Text style={styles.sectionTitle}>Informações Pessoais</Text>
 
         <View style={styles.form}>
-          <RegisterInput label="Nome" placeholder="" />
+          <RegisterInput 
+            label="Nome" 
+            placeholder="" 
+            value={nome}
+            onChangeText={setNome}
+          />
           <RegisterInput
             label="Telefone"
             placeholder="Ex: (79) 91234-5678"
             keyboardType="phone-pad"
+            value={telefone}
+            onChangeText={setTelefone}
           />
           <RegisterInput
             label="Email"
             placeholder="Ex: example@gmail.com"
             keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
           />
           <RegisterInput
             label="Cpf"
             placeholder="Ex: 123.456.789-00"
             keyboardType="numeric"
+            value={cpf}
+            onChangeText={setCpf}
           />
-          <RegisterInput label="Senha" placeholder="" isPassword />
+          <RegisterInput 
+            label="Senha" 
+            placeholder="" 
+            isPassword 
+            value={senha}
+            onChangeText={setSenha}
+          />
         </View>
 
         <Text style={styles.sectionTitle}>Cargo</Text>

@@ -1,30 +1,7 @@
-import express from 'express';
-
-import userRoutes from './src/routes/userRoutes.js';
-import parentRoutes from './src/routes/parentRoutes.js';
-import studentRoutes from './src/routes/studentRoutes.js';
-
+import app from './app.js';
 import { getConnection } from './src/database/db.js';
 
-import cors from 'cors';
-
-
-
-
-const app = express();
-app.use(cors());
 const port = process.env.PORT || 3000;
-
-app.use(express.json());
-
-app.use('/api/users', userRoutes);
-app.use('/api/parents', parentRoutes);
-app.use('/api/students', studentRoutes);
-
-app.get('/', (req, res) => {
-    res.status(200).json({ msg: "Bem-vindo" });
-});
-
 
 async function startServer() {
     try {

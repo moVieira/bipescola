@@ -12,16 +12,30 @@ import { Feather } from "@expo/vector-icons";
 import { Button } from "@shared/ui/Button/Button";
 import { RegisterInput } from "./RegisterInput";
 
+import { createParentAPI } from "@shared/api/userApi";
+
 export const ParentRegister = ({ onBack }) => {
   const [loading, setLoading] = useState(false);
+  const [nome, setNome] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [email, setEmail] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [senha, setSenha] = useState("");
 
   const handleRegister = async () => {
-    // mock register
-    setLoading(true);
-    setTimeout(() => {
+    if (!nome || !email) {
+      Alert.alert("Atenção", "Preencha ao menos Nome e Email do responsável.");
+      return;
+    }
+    try {
+      setLoading(true);
+      await createParentAPI({ nome, email });
+      Alert.alert("Sucesso", "Cadastro de responsável realizado com sucesso.");
+    } catch (error) {
+      Alert.alert("Erro", error.message || "Falha ao cadastrar responsável.");
+    } finally {
       setLoading(false);
-      Alert.alert("Sucesso", "Cadastro realizado com sucesso.");
-    }, 1000);
+    }
   };
 
   return (
@@ -40,23 +54,41 @@ export const ParentRegister = ({ onBack }) => {
         <Text style={styles.sectionTitle}>Informações do Responsável</Text>
 
         <View style={styles.form}>
-          <RegisterInput label="Nome" placeholder="" />
+          <RegisterInput 
+            label="Nome" 
+            placeholder="" 
+            value={nome}
+            onChangeText={setNome}
+          />
           <RegisterInput
             label="Telefone"
             placeholder="Ex: (79) 91234-5678"
             keyboardType="phone-pad"
+            value={telefone}
+            onChangeText={setTelefone}
           />
           <RegisterInput
             label="Email"
             placeholder="Ex: example@gmail.com"
             keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
           />
           <RegisterInput
             label="Cpf"
             placeholder="Ex: 123.456.789-00"
             keyboardType="numeric"
+            value={cpf}
+            onChangeText={setCpf}
           />
-          <RegisterInput label="Senha" placeholder="" isPassword />
+          <RegisterInput 
+            label="Senha" 
+            placeholder="" 
+            isPassword 
+            value={senha}
+            onChangeText={setSenha}
+          />
         </View>
 
         <Text style={styles.sectionTitle}>
