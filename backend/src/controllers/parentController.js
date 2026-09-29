@@ -1,11 +1,11 @@
-import * as parentService from "../services/parentService.js";
+﻿import * as parentService from "../services/parentService.js";
 
 export async function createParent(req, res) {
   try {
     const { nome, email } = req.body ?? {};
 
     if (!nome || !email) {
-      return res.status(400).json({ error: 'nome e email são obrigatórios' });
+      return res.status(400).json({ error: 'nome e email sÃ£o obrigatÃ³rios' });
     }
 
     const result = await parentService.createParent({ nome, email });
@@ -23,7 +23,7 @@ export async function createParent(req, res) {
 
   } catch (error) {
     return res.status(500).json({
-      error: 'Não foi possível criar o Parent'
+      error: 'NÃ£o foi possÃ­vel criar o Parent'
     });
   }
 }
@@ -54,13 +54,13 @@ export async function updateParent(req, res) {
 
     if (!Number.isInteger(parentId)) {
       return res.status(400).json({
-        error: "ID do Parent inválido"
+        error: "ID do Parent invÃ¡lido"
       });
     }
 
     if (!nome || !email) {
       return res.status(400).json({
-        error: "nome e email são obrigatórios"
+        error: "nome e email sÃ£o obrigatÃ³rios"
       });
     }
 
@@ -76,7 +76,7 @@ export async function updateParent(req, res) {
 
   } catch (error) {
     return res.status(500).json({
-      error: "Não foi possível atualizar o Parent",
+      error: "NÃ£o foi possÃ­vel atualizar o Parent",
       details: error.message
     });
   }
@@ -90,19 +90,19 @@ export async function deleteParent(req, res) {
 
     if (!Number.isInteger(parentId)) {
       return res.status(400).json({
-        error: "ID do Parent inválido"
+        error: "ID do Parent invÃ¡lido"
       });
     }
 
     await parentService.deleteParent(parentId);
 
     return res.status(200).json({
-      message: "Parent excluído com sucesso"
+      message: "Parent excluÃ­do com sucesso"
     });
 
   } catch (error) {
     return res.status(500).json({
-      error: "Não foi possível excluir o Parent",
+      error: "NÃ£o foi possÃ­vel excluir o Parent",
       details: error.message
     });
   }

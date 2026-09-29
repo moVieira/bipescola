@@ -1,32 +1,32 @@
-import express from 'express';
-import { createUser } from '../controllers/userController.js';
+﻿import express from 'express';
+
+import {
+  createUser,
+  loginUser,
+  listUsers,
+  getUser,
+  updateUser,
+  deleteUser
+} from '../controllers/userController.js';
 
 const router = express.Router();
 
-/// Criar Parente
-router.post('/', createUser);
-/**
- * 
- * /// Criar Aluno
-router.post();
-/// Criar Professor
-router.post();
-/// Listar todos Cadastros PARENT
-router.get();
-/// Listar todos Cadastros TEACHER
-router.get();
-/// Listar todos Cadastros SCHOOL
-router.get();
-/// Listar todos Cadastros ADM
-router.get();
-/// Listar PARENT por ID
-router.get();
-/// Listar TEACHER por ID
-router.get();
-/// Listar SCHOOL por ID
-router.get();
+// Login
+router.post('/login', loginUser);
 
- * 
- */
+// Criar usuário
+router.post('/', createUser);
+
+// Listar usuários
+router.get('/', listUsers);
+
+// Buscar usuário por ID
+router.get('/:id', getUser);
+
+// Editar usuário
+router.put('/:id', updateUser);
+
+// Deletar usuário
+router.delete('/:id', deleteUser);
 
 export default router;

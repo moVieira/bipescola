@@ -1,7 +1,7 @@
 ﻿import * as userModel from "../models/userModel.js";
 import * as userService from "./userService.js";
 
-export async function createParent(data) {
+export async function createAdm(data) {
   const result = await userService.createUser({
     nome: data.nome,
     email: data.email
@@ -9,7 +9,7 @@ export async function createParent(data) {
 
   const user = await userModel.updateRoleById(
     result.user.id,
-    "PARENT"
+    "ADM"
   );
 
   return {
@@ -18,14 +18,14 @@ export async function createParent(data) {
   };
 }
 
-export async function getParents() {
-  return await userModel.findByRole("PARENT");
+export async function getAdms() {
+  return await userModel.findByRole("ADM");
 }
 
-export async function updateParent(id, data) {
+export async function updateAdm(id, data) {
   return await userModel.updateById(id, data);
 }
 
-export async function deleteParent(id) {
+export async function deleteAdm(id) {
   return await userModel.deleteById(id);
 }
