@@ -9,24 +9,22 @@ import {
   deleteUser
 } from '../controllers/userController.js';
 
+import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { roleMiddleware } from '../middlewares/roleMiddleware.js';
+
 const router = express.Router();
 
-// Login
 router.post('/login', loginUser);
-
-// Criar usuário
 router.post('/', createUser);
-
-// Listar usuários
 router.get('/', listUsers);
-
-// Buscar usuário por ID
 router.get('/:id', getUser);
-
-// Editar usuário
 router.put('/:id', updateUser);
 
-// Deletar usuário
-router.delete('/:id', deleteUser);
+router.delete(
+  '/:id',
+  authMiddleware,
+  roleMiddleware('ADM'),
+  deleteUser
+);
 
 export default router;

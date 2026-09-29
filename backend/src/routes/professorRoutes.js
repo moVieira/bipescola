@@ -8,21 +8,21 @@ import {
   deleteProfessor
 } from "../controllers/teacherController.js";
 
+import { authMiddleware } from "../middlewares/authMiddleware.js";
+import { roleMiddleware } from "../middlewares/roleMiddleware.js";
+
 const router = express.Router();
 
-// Criar professor
 router.post("/", createProfessor);
-
-// Listar professores
 router.get("/", listProfessors);
-
-// Buscar professor por ID
 router.get("/:id", getProfessor);
-
-// Editar professor
 router.put("/:id", updateProfessor);
 
-// Deletar professor
-router.delete("/:id", deleteProfessor);
+router.delete(
+  "/:id",
+  authMiddleware,
+  roleMiddleware("ADM"),
+  deleteProfessor
+);
 
 export default router;

@@ -8,21 +8,21 @@ import {
   deleteAdm
 } from "../controllers/admController.js";
 
+import { authMiddleware } from "../middlewares/authMiddleware.js";
+import { roleMiddleware } from "../middlewares/roleMiddleware.js";
+
 const router = express.Router();
 
-// Criar ADM
 router.post("/", createAdm);
-
-// Listar ADMs
 router.get("/", listAdms);
-
-// Buscar ADM por ID
 router.get("/:id", getAdm);
-
-// Editar ADM
 router.put("/:id", updateAdm);
 
-// Deletar ADM
-router.delete("/:id", deleteAdm);
+router.delete(
+  "/:id",
+  authMiddleware,
+  roleMiddleware("ADM"),
+  deleteAdm
+);
 
 export default router;
