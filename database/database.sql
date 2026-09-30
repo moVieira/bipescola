@@ -122,6 +122,47 @@ CREATE TABLE registros_movimentacao (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================================
+-- TABELA: PRESENCAS
+-- Descricao: Confirmacao manual de presenca diaria (metodo em lote/checkbox)
+-- Diferenca de REGISTROS_MOVIMENTACAO: aqui eh um registro por aluno/dia,
+-- usado quando o professor confirma presenca manualmente (sem QR Code)
+-- ============================================================================
+CREATE TABLE presencas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    aluno_id INT NOT NULL,
+    data DATE NOT NULL,
+    presente BOOLEAN NOT NULL DEFAULT TRUE,
+    registrado_por INT NOT NULL,
+    data_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (aluno_id) REFERENCES alunos(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (registrado_por) REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+
+    UNIQUE (aluno_id, data),
+    INDEX idx_aluno_id (aluno_id),
+    INDEX idx_data (data),
+    INDEX idx_registrado_por (registrado_por)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- TABELA: POSTS
+-- Descricao: Comunicados/avisos publicados por professores e administradores
+-- ============================================================================
+CREATE TABLE posts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(255) NOT NULL,
+    conteudo TEXT NOT NULL,
+    autor_id INT NOT NULL,
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (autor_id) REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+
+    INDEX idx_autor_id (autor_id),
+    INDEX idx_data_criacao (data_criacao)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
 -- ============================================================================
 -- DADOS DE EXEMPLO PARA TESTES
 -- ============================================================================
