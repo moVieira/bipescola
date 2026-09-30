@@ -1,11 +1,52 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, Image, Alert, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ResponsiveContainer } from '@shared/ui/ResponsiveContainer/ResponsiveContainer';
 import { Feather } from '@expo/vector-icons';
 import { Input } from '@shared/ui/Input/Input';
 import { Button } from '@shared/ui/Button/Button';
+import { loginUserAPI } from '@shared/api/userApi';
 
 export const LoginScreen = ({ navigation }) => {
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check auto-login
+    const checkLogin = async () => {
+      try {
+        const token = await AsyncStorage.getItem('@bipescola_token');
+        if (token) {
+          navigation.navigate('Main');
+        }
+      } catch (e) {}
+      setLoading(false);
+    };
+    checkLogin();
+  }, []);
+
+  const handleLogin = async () => {
+    if (!email || !senha) {
+      Alert.alert('Erro', 'Por favor, preencha email e senha.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await loginUserAPI({ email, senha });
+      
+      await AsyncStorage.setItem('@bipescola_token', response.token);
+      await AsyncStorage.setItem('@bipescola_user', JSON.stringify(response.user));
+      
+      navigation.navigate('Main');
+    } catch (error) {
+      Alert.alert('Erro no Login', error.message || 'Credenciais inválidas.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <ResponsiveContainer style={styles.safeArea}>
       <KeyboardAvoidingView 
@@ -30,8 +71,21 @@ export const LoginScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.inputsContainer}>
-              <Input label="CPF" placeholder="exemplo" keyboardType="numeric" />
-              <Input label="Senha" placeholder="exemplo" isPassword />
+              <Input 
+                label="Email" 
+                placeholder="exemplo@email.com" 
+                keyboardType="email-address" 
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+              />
+              <Input 
+                label="Senha" 
+                placeholder="******" 
+                isPassword 
+                value={senha}
+                onChangeText={setSenha}
+              />
             </View>
 
             <TouchableOpacity style={styles.forgotPasswordContainer}>
@@ -41,7 +95,11 @@ export const LoginScreen = ({ navigation }) => {
 
           {/* Button Section */}
           <View style={styles.buttonContainer}>
-            <Button title="Fazer login" onPress={() => navigation.navigate('Main')} />
+            {loading ? (
+              <ActivityIndicator size="large" color="#02386A" />
+            ) : (
+              <Button title="Fazer login" onPress={handleLogin} />
+            )}
           </View>
         </View>
       </KeyboardAvoidingView>

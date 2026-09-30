@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,23 +7,41 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 import { ResponsiveContainer } from '@shared/ui/ResponsiveContainer/ResponsiveContainer';
 import { Feather } from "@expo/vector-icons";
 
 export const ProfileScreen = () => {
-  // Placeholder user data
-  // You can toggle role between 'parent' and 'admin' to see different views
-  const userRole = "parent"; // or 'admin'
+  const navigation = useNavigation();
+  const [userData, setUserData] = useState({
+    nome: "Carregando...",
+    email: "...",
+    role: "...",
+    image: "https://i.pravatar.cc/150?img=68", // [TODO]: Implementar rota de foto
+  });
 
-  const userData = {
-    name: userRole === "parent" ? "John Cena" : "Rita Lee",
-    roleLabel: userRole === "parent" ? "Responsável" : "Professora Turma N",
-    image: "https://i.pravatar.cc/150?img=68", // generic avatar placeholder
-    cpf: "123.456.789-00",
-    email: "Example@domain.com",
-    telefone: "(12) 93456-7890",
-    filho1: "Lebron James",
-    cpfFilho: "234.567.890-11",
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const userStr = await AsyncStorage.getItem('@bipescola_user');
+        if (userStr) {
+          setUserData(JSON.parse(userStr));
+        }
+      } catch (e) {
+        console.error("Failed to load user", e);
+      }
+    };
+    loadUser();
+  }, []);
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('@bipescola_token');
+    await AsyncStorage.removeItem('@bipescola_user');
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
   };
 
   const messages = [
@@ -55,6 +73,9 @@ export const ProfileScreen = () => {
     <ResponsiveContainer style={styles.safeArea}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Informações Pessoais</Text>
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
+          <Feather name="log-out" size={24} color="#CC0000" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -63,43 +84,29 @@ export const ProfileScreen = () => {
       >
         {/* User Info Section */}
         <View style={styles.profileHeader}>
-          <Image source={{ uri: userData.image }} style={styles.profileImage} />
-          <Text style={styles.profileName}>{userData.name}</Text>
-          <Text style={styles.profileRole}>{userData.roleLabel}</Text>
+          <Image source={{ uri: "https://i.pravatar.cc/150?img=68" }} style={styles.profileImage} />
+          <Text style={styles.todoText}>[TODO] Backend: API de alterar foto</Text>
+          <Text style={styles.profileName}>{userData.nome}</Text>
+          <Text style={styles.profileRole}>Perfil: {userData.role}</Text>
         </View>
 
         <View style={styles.detailsSection}>
-          <Text style={styles.sectionTitle}>Informações pessoais</Text>
+          <Text style={styles.sectionTitle}>Informações da Conta</Text>
 
-          <Text style={styles.detailText}>
-            <Text style={styles.detailLabel}>CPF:</Text> {userData.cpf}
-          </Text>
           <Text style={styles.detailText}>
             <Text style={styles.detailLabel}>Email:</Text> {userData.email}
           </Text>
-          <Text style={styles.detailText}>
-            <Text style={styles.detailLabel}>Telefone:</Text>{" "}
-            {userData.telefone}
-          </Text>
-
-          {userRole === "parent" && (
-            <>
-              <Text style={styles.detailText}>
-                <Text style={styles.detailLabel}>Filho 1:</Text>{" "}
-                {userData.filho1}
-              </Text>
-              <Text style={styles.detailText}>
-                <Text style={styles.detailLabel}>CPF do Filho:</Text>{" "}
-                {userData.cpfFilho}
-              </Text>
-            </>
-          )}
+          
+          <TouchableOpacity style={styles.actionBtn}>
+            <Feather name="lock" size={16} color="#02386A" />
+            <Text style={styles.actionBtnText}>Alterar Senha [TODO: Criar rota backend]</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Messages Section */}
         <View style={styles.messagesSection}>
           <Text style={styles.sectionTitle}>
-            {userRole === "parent"
+            {userData.role === "RESPONSAVEL"
               ? "Mensagens Recentes"
               : "Mensagens enviadas recentemente"}
           </Text>
@@ -148,6 +155,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderBottomWidth: 2,
@@ -272,5 +282,28 @@ const styles = StyleSheet.create({
     color: "#5A9BD6",
     textAlign: "right",
     marginTop: 8,
+  },
+  logoutBtn: {
+    padding: 8,
+  },
+  todoText: {
+    color: '#CC0000',
+    fontSize: 10,
+    marginBottom: 8,
+    fontFamily: 'Roboto_300Light',
+  },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  actionBtnText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#02386A',
+    fontFamily: 'Roboto_500Medium',
   },
 });

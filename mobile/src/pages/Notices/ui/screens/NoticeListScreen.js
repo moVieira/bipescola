@@ -1,47 +1,45 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NoticeCard } from '../components/NoticeCard';
-
-const MOCK_NOTICES = [
-  {
-    id: '1',
-    authorName: 'Sara Soares',
-    authorRole: 'Professora',
-    avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
-    subject: 'Assunto X',
-    content: 'Uma assunto provissório para preencher espaço que não possui texto, então foi necessário preencher esse espaço com um texto de preencher espaço não preenchido.',
-    date: '12 de dez. 2026',
-  },
-  {
-    id: '2',
-    authorName: 'Sara Soares',
-    authorRole: 'Professora',
-    avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
-    subject: 'Assunto X',
-    content: 'Uma assunto provissório para preencher espaço que não possui texto, então foi necessário preencher esse espaço com um texto de preencher espaço não preenchido.',
-    date: '12 de dez. 2026',
-  },
-  {
-    id: '3',
-    authorName: 'Sara Soares',
-    authorRole: 'Professora',
-    avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
-    subject: 'Assunto X',
-    content: 'Uma assunto provissório para preencher espaço que não possui texto, então foi necessário preencher esse espaço com um texto de preencher espaço não preenchido.',
-    date: '12 de dez. 2026',
-  },
-];
+import { listPostsAPI } from '@shared/api/schoolApi';
 
 export const NoticeListScreen = () => {
   const navigation = useNavigation();
-  // Mock role para simular a diferença de perfis. Altere para 'PARENT' para ver como fica para os pais.
-  const [role, setRole] = useState('ADM'); 
+  const isFocused = useIsFocused();
+  const [role, setRole] = useState('RESPONSAVEL'); 
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        setLoading(true);
+        const userStr = await AsyncStorage.getItem('@bipescola_user');
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          setRole(user.role);
+        }
+        
+        const res = await listPostsAPI();
+        setPosts(res || []);
+      } catch (error) {
+        console.error("Erro ao carregar avisos", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (isFocused) {
+      fetchPosts();
+    }
+  }, [isFocused]);
 
   const renderHeader = () => (
     <View style={styles.listHeader}>
-      {role !== 'PARENT' && (
+      {role !== 'RESPONSAVEL' && (
         <TouchableOpacity 
           style={styles.createButton} 
           onPress={() => navigation.navigate('NoticeCreate')}
@@ -52,7 +50,7 @@ export const NoticeListScreen = () => {
       )}
 
       <TouchableOpacity style={styles.semesterFilter}>
-        <Text style={styles.semesterText}>Semestre X</Text>
+        <Text style={styles.semesterText}>Recentes</Text>
         <Feather name="chevron-down" size={16} color="#F06292" />
       </TouchableOpacity>
     </View>
@@ -61,20 +59,32 @@ export const NoticeListScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        {/* Toggle escondido para fins de teste/visualização de fluxo */}
-        <TouchableOpacity onPress={() => setRole(role === 'PARENT' ? 'ADM' : 'PARENT')}>
-          <Text style={styles.headerTitle}>Avisos</Text>
-        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Mural de Avisos</Text>
       </View>
 
-      <FlatList
-        data={MOCK_NOTICES}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <NoticeCard notice={item} />}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={renderHeader}
-        showsVerticalScrollIndicator={false}
-      />
+      {loading ? (
+        <ActivityIndicator size="large" color="#F06292" style={{ marginTop: 20 }} />
+      ) : (
+        <FlatList
+          data={posts}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <NoticeCard notice={{
+              id: item.id.toString(),
+              authorName: item.autor_nome || 'Escola',
+              authorRole: 'Comunicação', 
+              avatarUrl: 'https://ui-avatars.com/api/?name=' + (item.autor_nome || 'A'),
+              subject: item.titulo,
+              content: item.conteudo,
+              date: new Date(item.data_criacao).toLocaleDateString('pt-BR')
+            }} />
+          )}
+          contentContainerStyle={styles.listContent}
+          ListHeaderComponent={renderHeader}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={<Text style={{textAlign: 'center', marginTop: 20}}>Nenhum aviso encontrado.</Text>}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -101,7 +111,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 24,
-    paddingBottom: 100, // Espaço para a BottomTab
+    paddingBottom: 100, 
   },
   listHeader: {
     marginBottom: 16,

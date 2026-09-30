@@ -10,7 +10,7 @@ import {
 import { Button } from "@shared/ui/Button/Button";
 import { RegisterInput } from "./RegisterInput";
 import { Feather } from "@expo/vector-icons";
-import { createUserAPI } from "@shared/api/userApi";
+import { createProfessorAPI } from "@shared/api/userApi";
 
 export const EmployeeRegister = ({ onBack }) => {
   const [loading, setLoading] = useState(false);
@@ -22,13 +22,13 @@ export const EmployeeRegister = ({ onBack }) => {
   const [role, setRole] = useState("PROF");
 
   const handleRegister = async () => {
-    if (!nome || !email || !role) {
+    if (!nome || !email) {
       Alert.alert("Atenção", "Preencha ao menos Nome e Email.");
       return;
     }
     try {
       setLoading(true);
-      await createUserAPI({ nome, email, role });
+      await createProfessorAPI({ nome, email });
       Alert.alert("Sucesso", "Cadastro de funcionário realizado com sucesso.");
     } catch (error) {
       Alert.alert("Erro", error.message || "Falha ao cadastrar funcionário.");

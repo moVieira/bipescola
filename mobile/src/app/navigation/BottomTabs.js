@@ -2,20 +2,13 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { RegisterScreen } from "@pages/Register";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PresenceNavigator } from "@pages/Presence";
 import { ProfileScreen } from "@pages/Profile";
 import { NoticesNavigator } from "@pages/Notices";
 import { EvaluationNavigator } from "@pages/Evaluation";
-
-// Placeholder screens for other tabs
-const PlaceholderScreen = ({ name }) => (
-  <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-    <Text>{name}</Text>
-  </View>
-);
+import { AdminNavigator } from "@pages/Admin";
 
 const Tab = createBottomTabNavigator();
 
@@ -31,15 +24,13 @@ export function BottomTabs() {
         tabBarStyle: [
           styles.tabBar, 
           { 
-            // Adiciona o inset da navegação do sistema para não sobrepor os ícones
             height: 70 + insets.bottom,
             paddingBottom: 10 + insets.bottom,
-            // Mantém a tab bar alinhada com o conteúdo restrito no tablet
             alignSelf: 'center',
             width: '100%',
             maxWidth: isTablet ? (width > 900 ? 750 : '85%') : '100%',
-            borderTopWidth: 0, // Remove a borda original para ficar mais clean se for card
-            elevation: 0, // Remove sombra no android para evitar linha dupla
+            borderTopWidth: 0,
+            elevation: 0,
           }
         ],
         tabBarShowLabel: false,
@@ -53,7 +44,7 @@ export function BottomTabs() {
             <View
               style={[
                 styles.iconContainer,
-                focused && { backgroundColor: "#FFCDD2" }, // Rosa claro
+                focused && { backgroundColor: "#FFCDD2" }, 
               ]}
             >
               <Feather
@@ -88,8 +79,8 @@ export function BottomTabs() {
         }}
       />
       <Tab.Screen
-        name="Register"
-        component={RegisterScreen}
+        name="Admin"
+        component={AdminNavigator}
         options={{
           tabBarIcon: ({ focused }) => (
             <View
@@ -99,11 +90,11 @@ export function BottomTabs() {
               ]}
             >
               <Feather
-                name="plus-square"
+                name="briefcase"
                 size={24}
                 color={focused ? "#000" : "#000"}
               />
-              <Text style={styles.iconText}>Cadastrar</Text>
+              <Text style={styles.iconText}>Painel ADM</Text>
             </View>
           ),
         }}
@@ -116,7 +107,7 @@ export function BottomTabs() {
             <View
               style={[
                 styles.iconContainer,
-                focused && { backgroundColor: "#FDE68A" }, // Amarelo
+                focused && { backgroundColor: "#FDE68A" }, 
               ]}
             >
               <Feather

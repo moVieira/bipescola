@@ -1,16 +1,64 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
+  Alert
 } from "react-native";
 import { ResponsiveContainer } from '@shared/ui/ResponsiveContainer/ResponsiveContainer';
 import { Feather } from "@expo/vector-icons";
+import { listStudentsAPI } from '@shared/api/adminApi';
+import { markAttendanceAPI } from '@shared/api/schoolApi';
 
 export const ClassListScreen = ({ navigation, route }) => {
-  // In a real app we would fetch the class data based on route.params.classId
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const res = await listStudentsAPI();
+        setStudents(res.data || []);
+      } catch (error) {
+        console.error("Erro ao buscar alunos", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStudents();
+  }, []);
+
+  const handleMarkAttendance = (student) => {
+    Alert.alert(
+      "Registrar Presença",
+      `Deseja registrar presença hoje para ${student.nome}?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        { 
+          text: "Falta", 
+          style: "destructive",
+          onPress: () => submitAttendance(student.id, false)
+        },
+        { 
+          text: "Presente", 
+          onPress: () => submitAttendance(student.id, true)
+        }
+      ]
+    );
+  };
+
+  const submitAttendance = async (aluno_id, presente) => {
+    const today = new Date().toISOString().split('T')[0];
+    try {
+      await markAttendanceAPI({ aluno_id, data: today, presente });
+      Alert.alert('Sucesso', `Registro salvo: ${presente ? 'Presente' : 'Falta'}`);
+    } catch (error) {
+      Alert.alert('Erro', error.message || 'Falha ao registrar presença.');
+    }
+  };
 
   return (
     <ResponsiveContainer style={styles.safeArea}>
@@ -26,29 +74,26 @@ export const ClassListScreen = ({ navigation, route }) => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.sectionTitle}>Turma N</Text>
-        <Text style={styles.sectionSubtitle}>Selecione um aluno</Text>
+        <Text style={styles.sectionTitle}>Alunos (Geral)</Text>
+        <Text style={styles.sectionSubtitle}>Selecione um aluno para lançar presença hoje</Text>
 
-        {/* List of students */}
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[
-              styles.studentItem,
-              index === 1 && styles.studentItemActive,
-            ]}
-            onPress={() => console.log("Selected student", item)}
-          >
-            <Text
-              style={[
-                styles.studentItemText,
-                index === 1 && styles.studentItemTextActive,
-              ]}
+        {loading ? (
+          <ActivityIndicator size="large" color="#33691E" style={{ marginTop: 20 }} />
+        ) : students.length === 0 ? (
+          <Text style={{textAlign: 'center', marginTop: 20}}>Nenhum aluno cadastrado.</Text>
+        ) : (
+          students.map((student) => (
+            <TouchableOpacity
+              key={student.id}
+              style={styles.studentItem}
+              onPress={() => handleMarkAttendance(student)}
             >
-              nome
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <Text style={styles.studentItemText}>
+                {student.nome} (Matrícula: {student.matricula})
+              </Text>
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
     </ResponsiveContainer>
   );
@@ -103,6 +148,8 @@ const styles = StyleSheet.create({
   studentItem: {
     paddingVertical: 12,
     paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
   studentItemActive: {
     backgroundColor: "#C5E1A5",

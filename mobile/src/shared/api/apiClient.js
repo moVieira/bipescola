@@ -1,15 +1,24 @@
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Atualizado para usar o IP da máquina, o que resolve o erro de "Network Error" em celulares físicos e emuladores.
-const BASE_URL = 'http://192.168.1.2:3000/api';
+const BASE_URL = 'http://192.168.1.30:3000/api';
 
 export const apiClient = async (endpoint, options = {}) => {
   const url = `${BASE_URL}${endpoint}`;
+  
+  let token = null;
+  try {
+    token = await AsyncStorage.getItem('@bipescola_token');
+  } catch (e) {
+    console.error('Failed to get token', e);
+  }
   
   const config = {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers || {}),
     },
   };

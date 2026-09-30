@@ -1,10 +1,32 @@
-import React from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { createPostAPI } from '@shared/api/schoolApi';
 
 export const NoticeCreateScreen = () => {
   const navigation = useNavigation();
+  const [titulo, setTitulo] = useState('');
+  const [conteudo, setConteudo] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleCreate = async () => {
+    if (!titulo || !conteudo) {
+      Alert.alert('Atenção', 'Preencha o título e o conteúdo do aviso.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await createPostAPI({ titulo, conteudo });
+      Alert.alert('Sucesso', 'Aviso publicado com sucesso!');
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert('Erro', error.message || 'Falha ao criar aviso.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -20,41 +42,40 @@ export const NoticeCreateScreen = () => {
         <Text style={styles.screenTitle}>Criar Aviso</Text>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Assunto</Text>
+          <Text style={styles.label}>Título (Assunto)</Text>
           <View style={styles.inputContainer}>
-            <TextInput style={styles.input} placeholder="Turma N" placeholderTextColor="#666" editable={false} />
-            <Feather name="chevron-down" size={20} color="#8B1A1A" style={styles.icon} />
-          </View>
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Assunto</Text>
-          <View style={styles.inputContainer}>
-            <TextInput style={styles.input} placeholder="Todos" placeholderTextColor="#666" editable={false} />
-            <Feather name="chevron-down" size={20} color="#8B1A1A" style={styles.icon} />
-          </View>
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Assunto</Text>
-          <View style={styles.inputContainer}>
-            <TextInput style={styles.input} placeholder="Assunto X" placeholderTextColor="#666" editable={false} />
-            <Feather name="chevron-down" size={20} color="#8B1A1A" style={styles.icon} />
-          </View>
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Assunto</Text>
-          <View style={[styles.inputContainer, styles.textAreaContainer]}>
             <TextInput 
-              style={[styles.input, styles.textArea]} 
-              placeholder="Insira aqui" 
-              placeholderTextColor="#F06292"
-              multiline
-              textAlignVertical="top"
+              style={styles.input} 
+              placeholder="Ex: Reunião de Pais" 
+              placeholderTextColor="#666" 
+              value={titulo}
+              onChangeText={setTitulo}
             />
           </View>
         </View>
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Conteúdo do Aviso</Text>
+          <View style={[styles.inputContainer, styles.textAreaContainer]}>
+            <TextInput 
+              style={[styles.input, styles.textArea]} 
+              placeholder="Insira o texto completo aqui..." 
+              placeholderTextColor="#F06292"
+              multiline
+              textAlignVertical="top"
+              value={conteudo}
+              onChangeText={setConteudo}
+            />
+          </View>
+        </View>
+
+        <TouchableOpacity 
+          style={styles.submitBtn} 
+          onPress={handleCreate}
+          disabled={loading}
+        >
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>Publicar Aviso</Text>}
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -111,22 +132,19 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   inputContainer: {
-    backgroundColor: '#F8BBD0', // Rosa claro dos inputs
+    backgroundColor: '#F8BBD0', 
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#F06292',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    height: 48,
+    minHeight: 48,
   },
   input: {
     flex: 1,
     fontSize: 14,
     color: '#000',
-  },
-  icon: {
-    marginLeft: 8,
   },
   textAreaContainer: {
     height: 120,
@@ -136,4 +154,16 @@ const styles = StyleSheet.create({
   textArea: {
     height: '100%',
   },
+  submitBtn: {
+    backgroundColor: '#F06292',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  submitBtnText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  }
 });

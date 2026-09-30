@@ -13,3 +13,17 @@ export const createUserAPI = async (userData) => {
     body: userData,
   });
 };
+
+export const createProfessorAPI = async (professorData) => {
+  return apiClient('/professors', {
+    method: 'POST',
+    body: professorData,
+  });
+};
+
+export const loginUserAPI = async (credentials) => {
+  return apiClient('/users/login', {
+    method: 'POST',
+    body: credentials,
+  });
+};
