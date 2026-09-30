@@ -12,6 +12,7 @@ import { Feather } from "@expo/vector-icons";
 import { Button } from "@shared/ui/Button/Button";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useIsFocused } from "@react-navigation/native";
+import { markAttendanceAPI } from "@shared/api/schoolApi";
 
 export const QRCodeScannerScreen = ({ navigation }) => {
   const [scannedData, setScannedData] = useState("");
@@ -20,7 +21,6 @@ export const QRCodeScannerScreen = ({ navigation }) => {
   const isFocused = useIsFocused();
 
   if (!permission) {
-    // Camera permissions are still loading.
     return (
       <ResponsiveContainer style={styles.safeArea}>
         <View style={styles.content}>
@@ -31,7 +31,6 @@ export const QRCodeScannerScreen = ({ navigation }) => {
   }
 
   if (!permission.granted) {
-    // Camera permissions are not granted yet.
     return (
       <ResponsiveContainer style={styles.safeArea}>
         <View style={styles.content}>
@@ -50,8 +49,6 @@ export const QRCodeScannerScreen = ({ navigation }) => {
   const handleBarCodeScanned = ({ type, data }) => {
     setScanned(true);
     setScannedData(data);
-    // You could immediately navigate or show a success message here
-    // alert(`Código lido: ${data}`);
   };
 
   return (
@@ -84,7 +81,6 @@ export const QRCodeScannerScreen = ({ navigation }) => {
               }}
             />
           )}
-          {/* Mock scanner frame overlay */}
           <View style={[styles.corner, styles.topLeft]} />
           <View style={[styles.corner, styles.topRight]} />
           <View style={[styles.corner, styles.bottomLeft]} />
@@ -94,7 +90,10 @@ export const QRCodeScannerScreen = ({ navigation }) => {
         {scanned && (
           <TouchableOpacity
             style={{ marginBottom: 16 }}
-            onPress={() => setScanned(false)}
+            onPress={() => {
+              setScanned(false);
+              setScannedData("");
+            }}
           >
             <Text style={{ color: "#33691E", fontWeight: "bold" }}>
               Escanear novamente
@@ -105,10 +104,11 @@ export const QRCodeScannerScreen = ({ navigation }) => {
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
-            placeholder="Inserir código"
+            placeholder="Aguardando código..."
             placeholderTextColor="#33691E"
             value={scannedData}
             onChangeText={setScannedData}
+            editable={false}
           />
         </View>
 
@@ -118,10 +118,21 @@ export const QRCodeScannerScreen = ({ navigation }) => {
             backgroundColor="#9DCC65"
             textColor="#33691E"
             style={styles.confirmBtn}
-            onPress={() => {
-              console.log("Confirmed presence with code:", scannedData);
-              alert("Presença confirmada: " + scannedData);
-              // Handle logic here...
+            onPress={async () => {
+              if (!scannedData || !scannedData.startsWith('aluno_')) {
+                alert('Código QR inválido!');
+                return;
+              }
+              const aluno_id = scannedData.split('_')[1];
+              const dataAtual = new Date().toISOString().split('T')[0];
+              try {
+                await markAttendanceAPI({ aluno_id, data: dataAtual, presente: true });
+                alert("Presença confirmada no sistema!");
+                setScannedData("");
+                setScanned(false);
+              } catch (e) {
+                alert("Erro ao salvar: " + (e.message || 'Falha na conexão. Você tem permissão?'));
+              }
             }}
           />
         </View>
@@ -131,109 +142,21 @@ export const QRCodeScannerScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontFamily: "Roboto_700Bold",
-    color: "#33691E",
-  },
-  headerButton: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  headerButtonText: {
-    color: "#D92D20",
-    fontSize: 12,
-    marginRight: 4,
-    fontFamily: "Roboto_500Medium",
-  },
-  content: {
-    flex: 1,
-    padding: 24,
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: "Roboto_700Bold",
-    color: "#000",
-    textAlign: "center",
-    marginTop: 24,
-    marginBottom: 48,
-  },
-  scannerContainer: {
-    width: 250,
-    height: 250,
-    position: "relative",
-    marginBottom: 24,
-    overflow: "hidden",
-  },
-  corner: {
-    position: "absolute",
-    width: 40,
-    height: 40,
-    borderColor: "#9DCC65",
-  },
-  topLeft: {
-    top: 0,
-    left: 0,
-    borderTopWidth: 6,
-    borderLeftWidth: 6,
-    borderTopLeftRadius: 16,
-  },
-  topRight: {
-    top: 0,
-    right: 0,
-    borderTopWidth: 6,
-    borderRightWidth: 6,
-    borderTopRightRadius: 16,
-  },
-  bottomLeft: {
-    bottom: 0,
-    left: 0,
-    borderBottomWidth: 6,
-    borderLeftWidth: 6,
-    borderBottomLeftRadius: 16,
-  },
-  bottomRight: {
-    bottom: 0,
-    right: 0,
-    borderBottomWidth: 6,
-    borderRightWidth: 6,
-    borderBottomRightRadius: 16,
-  },
-  inputContainer: {
-    width: "100%",
-    marginBottom: 24,
-  },
-  input: {
-    backgroundColor: "#C5E1A5",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#8FC959",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    fontFamily: "Roboto_300Light",
-    color: "#33691E",
-    textAlign: "center",
-  },
-  buttonContainer: {
-    width: "100%",
-    alignItems: "center",
-  },
-  confirmBtn: {
-    width: 200,
-  },
+  safeArea: { flex: 1, backgroundColor: "#fff" },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 24, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: "#f0f0f0" },
+  headerTitle: { fontSize: 20, fontFamily: "Roboto_700Bold", color: "#33691E" },
+  headerButton: { flexDirection: "row", alignItems: "center" },
+  headerButtonText: { color: "#D92D20", fontSize: 12, marginRight: 4, fontFamily: "Roboto_500Medium" },
+  content: { flex: 1, padding: 24, alignItems: "center" },
+  title: { fontSize: 18, fontFamily: "Roboto_700Bold", color: "#000", textAlign: "center", marginTop: 24, marginBottom: 48 },
+  scannerContainer: { width: 250, height: 250, position: "relative", marginBottom: 24, overflow: "hidden" },
+  corner: { position: "absolute", width: 40, height: 40, borderColor: "#9DCC65" },
+  topLeft: { top: 0, left: 0, borderTopWidth: 6, borderLeftWidth: 6, borderTopLeftRadius: 16 },
+  topRight: { top: 0, right: 0, borderTopWidth: 6, borderRightWidth: 6, borderTopRightRadius: 16 },
+  bottomLeft: { bottom: 0, left: 0, borderBottomWidth: 6, borderLeftWidth: 6, borderBottomLeftRadius: 16 },
+  bottomRight: { bottom: 0, right: 0, borderBottomWidth: 6, borderRightWidth: 6, borderBottomRightRadius: 16 },
+  inputContainer: { width: "100%", marginBottom: 24 },
+  input: { backgroundColor: "#C5E1A5", borderRadius: 8, borderWidth: 1, borderColor: "#8FC959", paddingHorizontal: 16, paddingVertical: 12, fontSize: 16, fontFamily: "Roboto_300Light", color: "#33691E", textAlign: "center" },
+  buttonContainer: { width: "100%", alignItems: "center" },
+  confirmBtn: { width: 200 }
 });

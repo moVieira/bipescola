@@ -1,42 +1,85 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
 import { ResponsiveContainer } from '@shared/ui/ResponsiveContainer/ResponsiveContainer';
 import { Feather } from "@expo/vector-icons";
 import { Button } from "@shared/ui/Button/Button";
+import QRCode from 'react-native-qrcode-svg';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Clipboard from 'expo-clipboard';
 
 export const QRCodeGeneratorScreen = ({ navigation }) => {
+  const [userData, setUserData] = useState(null);
+  const [alunoId, setAlunoId] = useState(null);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const userStr = await AsyncStorage.getItem('@bipescola_user');
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          setUserData(user);
+          
+          if (user.role === 'PARENT') {
+            const { apiClient } = require('@shared/api/apiClient');
+            const res = await apiClient(`/students/pai/${user.id}`, { method: 'GET' });
+            if (res && res.data && res.data.length > 0) {
+              setAlunoId(res.data[0].id);
+            }
+          } else {
+             setAlunoId(user.id);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    loadData();
+  }, []);
+
+  const qrValue = alunoId ? `aluno_${alunoId}` : 'loading';
+
+  const copyToClipboard = async () => {
+    await Clipboard.setStringAsync(qrValue);
+    alert('Código copiado!');
+  };
+
   return (
     <ResponsiveContainer style={styles.safeArea}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Qr Code</Text>
+        <Text style={styles.headerTitle}>QR Code</Text>
         <TouchableOpacity
           style={styles.headerButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.headerButtonText}>botão</Text>
+          <Text style={styles.headerButtonText}>Voltar</Text>
           <Feather name="chevron-right" size={20} color="#D92D20" />
         </TouchableOpacity>
       </View>
 
       <View style={styles.content}>
         <Text style={styles.title}>
-          Código Qr para{"\n"}validação de presença
+          Código QR para{"\n"}validação de presença
         </Text>
 
         <View style={styles.qrContainer}>
-          {/* We can use a real QR code library later, for now we just show a placeholder box or icon */}
-          <View style={styles.qrPlaceholder}>
-            <Feather name="maximize" size={150} color="#000" />
-            {/* The mock shows an actual QR code. Since we don't have an asset, using an icon placeholder */}
-          </View>
+          {!userData ? (
+             <ActivityIndicator size="large" color="#33691E" />
+          ) : (
+             <QRCode
+               value={qrValue}
+               size={200}
+               color="black"
+               backgroundColor="white"
+             />
+          )}
         </View>
 
         <View style={styles.codeContainer}>
           <View>
-            <Text style={styles.codeLabel}>Código</Text>
-            <Text style={styles.codeValue}>asdffgsafsdfsdfgsdfgsd</Text>
+            <Text style={styles.codeLabel}>Código da Matrícula</Text>
+            <Text style={styles.codeValue}>{userData ? qrValue : '...'}</Text>
           </View>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={copyToClipboard}>
             <Feather name="copy" size={24} color="#000" />
           </TouchableOpacity>
         </View>
@@ -47,7 +90,7 @@ export const QRCodeGeneratorScreen = ({ navigation }) => {
             backgroundColor="#9DCC65"
             textColor="#33691E"
             style={styles.copyBtn}
-            onPress={() => console.log("Copied")}
+            onPress={copyToClipboard}
           />
         </View>
       </View>
@@ -99,15 +142,6 @@ const styles = StyleSheet.create({
   },
   qrContainer: {
     marginBottom: 32,
-  },
-  qrPlaceholder: {
-    width: 200,
-    height: 200,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f5f5f5",
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
   },
   codeContainer: {
     flexDirection: "row",

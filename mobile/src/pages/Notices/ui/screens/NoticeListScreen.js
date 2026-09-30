@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,7 +10,7 @@ import { listPostsAPI } from '@shared/api/schoolApi';
 export const NoticeListScreen = () => {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
-  const [role, setRole] = useState('RESPONSAVEL'); 
+  const [role, setRole] = useState('PARENT'); 
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -39,7 +40,7 @@ export const NoticeListScreen = () => {
 
   const renderHeader = () => (
     <View style={styles.listHeader}>
-      {role !== 'RESPONSAVEL' && (
+      {role !== 'PARENT' && (
         <TouchableOpacity 
           style={styles.createButton} 
           onPress={() => navigation.navigate('NoticeCreate')}

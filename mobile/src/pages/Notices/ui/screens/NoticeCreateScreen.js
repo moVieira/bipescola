@@ -1,14 +1,35 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Modal, FlatList } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { createPostAPI } from '@shared/api/schoolApi';
+import { listParentsAPI } from '@shared/api/adminApi';
 
 export const NoticeCreateScreen = () => {
   const navigation = useNavigation();
   const [titulo, setTitulo] = useState('');
   const [conteudo, setConteudo] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Lógica para Dropdown de Pais
+  const [parents, setParents] = useState([]);
+  const [selectedParent, setSelectedParent] = useState(null); // null = Todos
+  const [isModalVisible, setModalVisible] = useState(false);
+
+  useEffect(() => {
+    const fetchParents = async () => {
+      try {
+        const res = await listParentsAPI();
+        // Assume que a API retorna os dados no formato esperado
+        setParents([{ id: 'todos', nome: 'Todos os Pais (Geral)' }, ...(res || [])]);
+        setSelectedParent({ id: 'todos', nome: 'Todos os Pais (Geral)' });
+      } catch (error) {
+        console.error("Erro ao carregar pais", error);
+      }
+    };
+    fetchParents();
+  }, []);
 
   const handleCreate = async () => {
     if (!titulo || !conteudo) {
@@ -18,7 +39,13 @@ export const NoticeCreateScreen = () => {
 
     try {
       setLoading(true);
-      await createPostAPI({ titulo, conteudo });
+      // Incluímos destinatario_id no payload, mas avisaremos o back-end para aceitá-lo!
+      const payload = { 
+        titulo, 
+        conteudo,
+        destinatario_id: selectedParent?.id === 'todos' ? null : selectedParent?.id
+      };
+      await createPostAPI(payload);
       Alert.alert('Sucesso', 'Aviso publicado com sucesso!');
       navigation.goBack();
     } catch (error) {
@@ -26,6 +53,11 @@ export const NoticeCreateScreen = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const selectParent = (parent) => {
+    setSelectedParent(parent);
+    setModalVisible(false);
   };
 
   return (
@@ -40,6 +72,19 @@ export const NoticeCreateScreen = () => {
 
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.screenTitle}>Criar Aviso</Text>
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Destinatário (Pai/Responsável) [Frontend Pronto]</Text>
+          <TouchableOpacity 
+            style={styles.inputContainer}
+            onPress={() => setModalVisible(true)}
+          >
+            <Text style={[styles.input, { color: selectedParent ? '#000' : '#666' }]}>
+              {selectedParent ? selectedParent.nome : 'Selecione um pai...'}
+            </Text>
+            <Feather name="chevron-down" size={20} color="#8B1A1A" />
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.formGroup}>
           <Text style={styles.label}>Título (Assunto)</Text>
@@ -77,6 +122,27 @@ export const NoticeCreateScreen = () => {
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>Publicar Aviso</Text>}
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Dropdown Modal */}
+      <Modal visible={isModalVisible} transparent={true} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Selecione o Destinatário</Text>
+            <FlatList
+              data={parents}
+              keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity style={styles.modalItem} onPress={() => selectParent(item)}>
+                  <Text style={styles.modalItemText}>{item.nome || item.email}</Text>
+                </TouchableOpacity>
+              )}
+            />
+            <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setModalVisible(false)}>
+              <Text style={styles.modalCloseText}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -163,6 +229,46 @@ const styles = StyleSheet.create({
   },
   submitBtnText: {
     color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '80%',
+    maxHeight: '70%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontFamily: 'Roboto_700Bold',
+    color: '#8B1A1A',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  modalItem: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  modalItemText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  modalCloseBtn: {
+    marginTop: 16,
+    alignItems: 'center',
+    padding: 12,
+  },
+  modalCloseText: {
+    color: '#D92D20',
     fontWeight: 'bold',
     fontSize: 16,
   }

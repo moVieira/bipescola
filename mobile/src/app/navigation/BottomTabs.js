@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
+import { View, Text, StyleSheet, useWindowDimensions, ActivityIndicator } from "react-native";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { PresenceNavigator } from "@pages/Presence";
 import { ProfileScreen } from "@pages/Profile";
@@ -16,6 +17,37 @@ export function BottomTabs() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
+  const [role, setRole] = useState(null);
+
+  useEffect(() => {
+    const loadRole = async () => {
+      try {
+        const userStr = await AsyncStorage.getItem('@bipescola_user');
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          setRole(user.role);
+        }
+      } catch (e) {
+        console.error('Erro ao buscar role:', e);
+      }
+    };
+    loadRole();
+  }, []);
+
+  if (!role) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#02386A" />
+      </View>
+    );
+  }
+
+  // Regras de negócio de visibilidade
+  const canSeeNotices = ['ADM', 'PROF', 'PARENT'].includes(role);
+  const canSeeAdmin = ['ADM'].includes(role);
+  const canSeeEvaluation = ['ADM', 'PROF', 'PARENT'].includes(role);
+  // Porteiro tem acesso exclusivo a presença para ler QR Code, além do app comum
+  const canSeePresence = ['ADM', 'PROF', 'PARENT', 'PORTEIRO'].includes(role);
 
   return (
     <Tab.Navigator
@@ -36,106 +68,73 @@ export function BottomTabs() {
         tabBarShowLabel: false,
       }}
     >
-      <Tab.Screen
-        name="Avisos"
-        component={NoticesNavigator}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <View
-              style={[
-                styles.iconContainer,
-                focused && { backgroundColor: "#FFCDD2" }, 
-              ]}
-            >
-              <Feather
-                name="bell"
-                size={24}
-                color={focused ? "#000" : "#000"}
-              />
-              <Text style={styles.iconText}>Avisos</Text>
-            </View>
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Presence"
-        component={PresenceNavigator}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <View
-              style={[
-                styles.iconContainer,
-                focused && { backgroundColor: "#C5E1A5" },
-              ]}
-            >
-              <Feather
-                name="check-circle"
-                size={24}
-                color={focused ? "#000" : "#000"}
-              />
-              <Text style={styles.iconText}>Presença</Text>
-            </View>
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Admin"
-        component={AdminNavigator}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <View
-              style={[
-                styles.iconContainer,
-                focused && { backgroundColor: "#C1B4D8" },
-              ]}
-            >
-              <Feather
-                name="briefcase"
-                size={24}
-                color={focused ? "#000" : "#000"}
-              />
-              <Text style={styles.iconText}>Painel ADM</Text>
-            </View>
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Evaluation"
-        component={EvaluationNavigator}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <View
-              style={[
-                styles.iconContainer,
-                focused && { backgroundColor: "#FDE68A" }, 
-              ]}
-            >
-              <Feather
-                name="clipboard"
-                size={24}
-                color={focused ? "#000" : "#000"}
-              />
-              <Text style={styles.iconText}>Avaliação</Text>
-            </View>
-          ),
-        }}
-      />
+      {canSeeNotices && (
+        <Tab.Screen
+          name="Avisos"
+          component={NoticesNavigator}
+          options={{
+            tabBarIcon: ({ focused }) => (
+              <View style={[styles.iconContainer, focused && { backgroundColor: "#FFCDD2" }]}>
+                <Feather name="bell" size={24} color={focused ? "#000" : "#000"} />
+                <Text style={styles.iconText}>Avisos</Text>
+              </View>
+            ),
+          }}
+        />
+      )}
+
+      {canSeePresence && (
+        <Tab.Screen
+          name="Presence"
+          component={PresenceNavigator}
+          options={{
+            tabBarIcon: ({ focused }) => (
+              <View style={[styles.iconContainer, focused && { backgroundColor: "#C5E1A5" }]}>
+                <Feather name="check-circle" size={24} color={focused ? "#000" : "#000"} />
+                <Text style={styles.iconText}>Presença</Text>
+              </View>
+            ),
+          }}
+        />
+      )}
+
+      {canSeeAdmin && (
+        <Tab.Screen
+          name="Admin"
+          component={AdminNavigator}
+          options={{
+            tabBarIcon: ({ focused }) => (
+              <View style={[styles.iconContainer, focused && { backgroundColor: "#C1B4D8" }]}>
+                <Feather name="briefcase" size={24} color={focused ? "#000" : "#000"} />
+                <Text style={styles.iconText}>Painel ADM</Text>
+              </View>
+            ),
+          }}
+        />
+      )}
+
+      {canSeeEvaluation && (
+        <Tab.Screen
+          name="Evaluation"
+          component={EvaluationNavigator}
+          options={{
+            tabBarIcon: ({ focused }) => (
+              <View style={[styles.iconContainer, focused && { backgroundColor: "#FDE68A" }]}>
+                <Feather name="clipboard" size={24} color={focused ? "#000" : "#000"} />
+                <Text style={styles.iconText}>Avaliação</Text>
+              </View>
+            ),
+          }}
+        />
+      )}
+
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <View
-              style={[
-                styles.iconContainer,
-                focused && { backgroundColor: "#A0C4E1" },
-              ]}
-            >
-              <Feather
-                name="user"
-                size={24}
-                color={focused ? "#000" : "#000"}
-              />
+            <View style={[styles.iconContainer, focused && { backgroundColor: "#A0C4E1" }]}>
+              <Feather name="user" size={24} color={focused ? "#000" : "#000"} />
               <Text style={styles.iconText}>Perfil</Text>
             </View>
           ),

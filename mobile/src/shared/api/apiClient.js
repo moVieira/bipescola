@@ -10,6 +10,9 @@ export const apiClient = async (endpoint, options = {}) => {
   let token = null;
   try {
     token = await AsyncStorage.getItem('@bipescola_token');
+    if (token) {
+      token = token.replace(/^"|"$/g, '');
+    }
   } catch (e) {
     console.error('Failed to get token', e);
   }
